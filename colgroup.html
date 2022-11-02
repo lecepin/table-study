@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>colgroup 的拉伸问题</title>
+  <style>
+    /* 通过此处设置，可以让滚动条在该出现的时候一直显示，避免macOS下只在滚动情况显示 */
+    /* 同时，他会自动把容器的可用空间减去，不影响内部元素，如外部600，bar 10，则内部可用600-10 */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border: 1px solid #eaeaea;
+
+    }
+
+    /* ::-webkit-scrollbar-thumb:hover {
+      background: #6e6e6e;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #eaeaea;
+    } */
+  </style>
+</head>
+
+<body>
+  <h3>1. 表格常规宽度</h3>
+  <table>
+    <caption>表格实际宽度</caption>
+    <colgroup>
+      <col style="width: 100px;background:red">
+      </col>
+      <col style="width: 100px;background:green">
+      </col>
+      <col style="width: 100px;background:yellow">
+      </col>
+    </colgroup>
+    <tr>
+      <td>100px</td>
+      <td>100px</td>
+      <td>100px</td>
+    </tr>
+  </table>
+
+  <p>整体宽度由 colgroup 计算得来。</p>
+  <hr />
+
+  <h3>2. 表格宽度 = 容器宽度，table的宽度不足容器宽度</h3>
+  <div style="width: 600px;">
+    <table style="width: 100%;">
+      <caption>全部固定宽度</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="width: 100px;background:yellow">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px（实际宽度：容器宽度 - 表格实际宽度 然后按照比例分配空间）</td>
+        <td>100px（实际拉伸到200px）</td>
+        <td>100px</td>
+      </tr>
+    </table>
+    <p>自动瓜分剩余空间</p>
+    <table style="width: 100%;">
+      <caption>全部固定宽度，最后一个不设置宽度</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="background:yellow">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px</td>
+        <td>100px</td>
+        <td>100px（吃掉所有宽度：实际宽度 - 表格宽度 400px）</td>
+      </tr>
+    </table>
+  </div>
+
+  <p>可以通过，maxWidth 替换 width 解决</p>
+  <hr />
+
+  <h3>3. 表格宽度 = 容器宽度，table的宽度超出容器宽度</h3>
+  <div style="width: 600px;">
+    <table style="width: 100%;">
+      <caption>全部固定宽度, table-layout default</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="width: 100px;background:yellow">
+        </col>
+        <col style="width: 400px;background:pink">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px（都被缩减了）</td>
+        <td>100px</td>
+        <td>100px</td>
+        <td>400px</td>
+      </tr>
+    </table>
+
+    <p>自动缩放到容器宽度</p>
+
+    <table style="width: 100%;">
+      <caption>全部固定宽度，最后一个不设置宽度, table-layout default</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="width: 500px;background:pink">
+        </col>
+        <col style="background:yellow">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px</td>
+        <td>100px</td>
+        <td>500px</td>
+        <td>未设置</td>
+      </tr>
+    </table>
+    <p>都被压缩，宽度由 table-layout 自动计算得来</p>
+
+    <table style="width: 100%; table-layout: fixed;">
+      <caption>全部固定宽度, table-layout fixed</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="width: 100px;background:yellow">
+        </col>
+        <col style="width: 400px;background:pink">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px</td>
+        <td>100px</td>
+        <td>100px</td>
+        <td>400px</td>
+      </tr>
+    </table>
+    <p>不受容器限制，就是实际设置的大小</p>
+
+    <table style="width: 100%; table-layout: fixed;">
+      <caption>全部固定宽度，最后一个不设置宽度, table-layout fixed</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="width: 500px;background:pink">
+        </col>
+        <col style="background:yellow">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px</td>
+        <td>100px</td>
+        <td>500px</td>
+        <td>未设置</td>
+      </tr>
+    </table>
+  </div>
+
+  <hr />
+
+  <h3>4. 实现水平滚动</h3>
+  <p>都被压缩，宽度由 table-layout 自动计算得来</p>
+  <div style="width: 600px;overflow: auto;">
+
+    <table style="width: 100%; table-layout: fixed;">
+      <caption>全部固定宽度, table-layout fixed</caption>
+      <colgroup>
+        <col style="width: 100px;background:red">
+        </col>
+        <col style="width: 100px;background:green">
+        </col>
+        <col style="width: 100px;background:yellow">
+        </col>
+        <col style="width: 400px;background:pink">
+        </col>
+      </colgroup>
+      <tr>
+        <td>100px</td>
+        <td>100px</td>
+        <td>100px</td>
+        <td>400px</td>
+      </tr>
+    </table>
+  </div>
+
+</body>
+
+</html>
