@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>通过 sticky 实现冻结列</title>
+  <style>
+    /* 通过此处设置，可以让滚动条在该出现的时候一直显示，避免macOS下只在滚动情况显示 */
+    /* 同时，他会自动把容器的可用空间减去，不影响内部元素，如外部600，bar 10，则内部可用600-10 */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border: 1px solid #eaeaea;
+
+    }
+
+    /* ::-webkit-scrollbar-thumb:hover {
+      background: #6e6e6e;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #eaeaea;
+    } */
+
+    * {}
+
+    .table1 {
+      border-spacing: 0;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <h3>1. 冻结头</h3>
+  <div style="height: 210px; overflow: auto;">
+    <table class="table1" style="table-layout: fixed;" border="1">
+      <caption>正常情况</caption>
+      <colgroup>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+          <th>F1</th>
+          <th>G1</th>
+        </tr>
+        <tr>
+          <th>A2</th>
+          <th>B2</th>
+          <th>C2</th>
+          <th>D2</th>
+          <th>E2</th>
+          <th>F2</th>
+          <th>G2</th>
+        </tr>
+        <tr>
+          <th>A3</th>
+          <th>B3</th>
+          <th>C3</th>
+          <th>D3</th>
+          <th>E3</th>
+          <th>F3</th>
+          <th>G3</th>
+        </tr>
+        <tr>
+          <th>A4</th>
+          <th>B4</th>
+          <th>C4</th>
+          <th>D4</th>
+          <th>E4</th>
+          <th>F4</th>
+          <th>G4</th>
+        </tr>
+        <tr>
+          <th>A5</th>
+          <th>B5</th>
+          <th>C5</th>
+          <th>D5</th>
+          <th>E5</th>
+          <th>F5</th>
+          <th>G5</th>
+        </tr>
+        <tr>
+          <th>A6</th>
+          <th>B6</th>
+          <th>C6</th>
+          <th>D6</th>
+          <th>E6</th>
+          <th>F6</th>
+          <th>G6</th>
+        </tr>
+        <tr>
+          <th>A7</th>
+          <th>B7</th>
+          <th>C7</th>
+          <th>D7</th>
+          <th>E7</th>
+          <th>F7</th>
+          <th>G7</th>
+        </tr>
+        <tr>
+          <th>A8</th>
+          <th>B8</th>
+          <th>C8</th>
+          <th>D8</th>
+          <th>E8</th>
+          <th>F8</th>
+          <th>G8</th>
+        </tr>
+        <tr>
+          <th>A9</th>
+          <th>B9</th>
+          <th>C9</th>
+          <th>D9</th>
+          <th>E9</th>
+          <th>F9</th>
+          <th>G9</th>
+        </tr>
+        <tr>
+          <th>A10</th>
+          <th>B10</th>
+          <th>C10</th>
+          <th>D10</th>
+          <th>E10</th>
+          <th>F10</th>
+          <th>G10</th>
+        </tr>
+        <tr>
+          <th>A11</th>
+          <th>B11</th>
+          <th>C11</th>
+          <th>D11</th>
+          <th>E11</th>
+          <th>F11</th>
+          <th>G11</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <br />
+  <div style="height: 210px; overflow: auto;">
+    <table class="table1" style="table-layout: fixed;" border="1">
+      <caption>冻结头</caption>
+      <colgroup>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+      </colgroup>
+      <thead style="background-color: red; position: sticky; top: 0;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+          <th>F1</th>
+          <th>G1</th>
+        </tr>
+        <tr>
+          <th>A2</th>
+          <th>B2</th>
+          <th>C2</th>
+          <th>D2</th>
+          <th>E2</th>
+          <th>F2</th>
+          <th>G2</th>
+        </tr>
+        <tr>
+          <th>A3</th>
+          <th>B3</th>
+          <th>C3</th>
+          <th>D3</th>
+          <th>E3</th>
+          <th>F3</th>
+          <th>G3</th>
+        </tr>
+        <tr>
+          <th>A4</th>
+          <th>B4</th>
+          <th>C4</th>
+          <th>D4</th>
+          <th>E4</th>
+          <th>F4</th>
+          <th>G4</th>
+        </tr>
+        <tr>
+          <th>A5</th>
+          <th>B5</th>
+          <th>C5</th>
+          <th>D5</th>
+          <th>E5</th>
+          <th>F5</th>
+          <th>G5</th>
+        </tr>
+        <tr>
+          <th>A6</th>
+          <th>B6</th>
+          <th>C6</th>
+          <th>D6</th>
+          <th>E6</th>
+          <th>F6</th>
+          <th>G6</th>
+        </tr>
+        <tr>
+          <th>A7</th>
+          <th>B7</th>
+          <th>C7</th>
+          <th>D7</th>
+          <th>E7</th>
+          <th>F7</th>
+          <th>G7</th>
+        </tr>
+        <tr>
+          <th>A8</th>
+          <th>B8</th>
+          <th>C8</th>
+          <th>D8</th>
+          <th>E8</th>
+          <th>F8</th>
+          <th>G8</th>
+        </tr>
+        <tr>
+          <th>A9</th>
+          <th>B9</th>
+          <th>C9</th>
+          <th>D9</th>
+          <th>E9</th>
+          <th>F9</th>
+          <th>G9</th>
+        </tr>
+        <tr>
+          <th>A10</th>
+          <th>B10</th>
+          <th>C10</th>
+          <th>D10</th>
+          <th>E10</th>
+          <th>F10</th>
+          <th>G10</th>
+        </tr>
+        <tr>
+          <th>A11</th>
+          <th>B11</th>
+          <th>C11</th>
+          <th>D11</th>
+          <th>E11</th>
+          <th>F11</th>
+          <th>G11</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <h3>2. 冻结列</h3>
+  <div style="width: 400px; overflow: auto;">
+    <!-- 必须搭配 width:100% 使用，不然 table 的 cell 宽度会被重新计算 -->
+    <table class="table1" style="table-layout: fixed; width: 100%;" border="1">
+      <caption>正常情况(width: 100%)</caption>
+      <colgroup>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+          <th>F1</th>
+          <th>G1</th>
+        </tr>
+        <tr>
+          <th>A2</th>
+          <th>B2</th>
+          <th>C2</th>
+          <th>D2</th>
+          <th>E2</th>
+          <th>F2</th>
+          <th>G2</th>
+        </tr>
+        <tr>
+          <th>A3</th>
+          <th>B3</th>
+          <th>C3</th>
+          <th>D3</th>
+          <th>E3</th>
+          <th>F3</th>
+          <th>G3</th>
+        </tr>
+        <tr>
+          <th>A4</th>
+          <th>B4</th>
+          <th>C4</th>
+          <th>D4</th>
+          <th>E4</th>
+          <th>F4</th>
+          <th>G4</th>
+        </tr>
+        <tr>
+          <th>A5</th>
+          <th>B5</th>
+          <th>C5</th>
+          <th>D5</th>
+          <th>E5</th>
+          <th>F5</th>
+          <th>G5</th>
+        </tr>
+        <tr>
+          <th>A6</th>
+          <th>B6</th>
+          <th>C6</th>
+          <th>D6</th>
+          <th>E6</th>
+          <th>F6</th>
+          <th>G6</th>
+        </tr>
+        <tr>
+          <th>A7</th>
+          <th>B7</th>
+          <th>C7</th>
+          <th>D7</th>
+          <th>E7</th>
+          <th>F7</th>
+          <th>G7</th>
+        </tr>
+        <tr>
+          <th>A8</th>
+          <th>B8</th>
+          <th>C8</th>
+          <th>D8</th>
+          <th>E8</th>
+          <th>F8</th>
+          <th>G8</th>
+        </tr>
+        <tr>
+          <th>A9</th>
+          <th>B9</th>
+          <th>C9</th>
+          <th>D9</th>
+          <th>E9</th>
+          <th>F9</th>
+          <th>G9</th>
+        </tr>
+        <tr>
+          <th>A10</th>
+          <th>B10</th>
+          <th>C10</th>
+          <th>D10</th>
+          <th>E10</th>
+          <th>F10</th>
+          <th>G10</th>
+        </tr>
+        <tr>
+          <th>A11</th>
+          <th>B11</th>
+          <th>C11</th>
+          <th>D11</th>
+          <th>E11</th>
+          <th>F11</th>
+          <th>G11</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>水平滚动时，如果 table 包裹在 容器 中时，必须设置 table 的 width:100%，否则 table 中 cell 的宽度会被重新计算，不会超出容器的宽度，滚动条也就没了。</p>
+  <p>不管你加不加 table-layout: fixed 都会有这个问题</p>
+  <p>目前只能设置 table width:100% 才行。其他 width 也不行，如 max-width。 但这会出现 当 table 总宽度小于容器宽度时，又会被拉伸。。。</p>
+  <p>一种不太好的解法，就是用 js 计算表格的宽度是否大于容器，如果大于则给 table 设置 width: 100% ，否则不设置。</p>
+
+  <p>为防止计算错误，需要为 table 加入下面样式，清除额外的空间计算错误问题：</p>
+  <pre>
+.table1 {
+  border-spacing: 0;
+  box-sizing: border-box;
+}
+  </pre>
+
+  <p>如下：</p>
+
+  <div style="width: 400px; overflow: auto;" id="table1_container">
+    <!-- 必须搭配 width:100% 使用，不然 table 的 cell 宽度会被重新计算 -->
+    <table id="table1" class="table1" style="table-layout: fixed; width: 100%;" border="1">
+      <caption>js自动处理添加(width: 100%)样式问题</caption>
+      <colgroup id="table1_colgroup">
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <pre>
+let realWidth = 0;
+[...table1_colgroup.children].forEach(el => {
+  realWidth += +el.style.width.split('px')[0]
+});
+
+console.log({})
+if (table1_container.offsetWidth < realWidth) {
+  table1.style.width = '100%'
+} else {
+  table1.style.width = ''
+}
+  </pre>
+  <script>
+    let realWidth = 0;
+    [...table1_colgroup.children].forEach(el => {
+      realWidth += +el.style.width.split('px')[0]
+    });
+
+    console.log({})
+    if (table1_container.offsetWidth < realWidth) {
+      table1.style.width = '100%'
+    } else {
+      table1.style.width = ''
+    }
+  </script>
+
+
+  通过给 col 同时设置 width/min-width/max-width 可解决超过宽度的缩放问题: (max-width 在 col 中对cell无效)
+  <div style="width: 400px; overflow: auto;">
+
+    <table class="table1" style="table-layout: fixed; " border="1">
+      <caption>不足</caption>
+      <colgroup>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <br />
+  <div style="width: 400px; overflow: auto;">
+    <table class="table1" style="table-layout: fixed; " border="1">
+      <caption>超出</caption>
+      <colgroup>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <br />
+  max-width 对cell 宽度的影响：
+
+  <div style="width: 400px; overflow: auto;">
+
+    <table class="table1" style="table-layout: fixed; " border="1">
+      <caption>col max-width 对 cell 不生效</caption>
+      <colgroup>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1bbbbbbbbbbbbb</th>
+          <th>C1</th>
+        </tr>
+      </tbody>
+    </table>
+
+    <br />
+    <table class="table1" style="table-layout: fixed; " border="1">
+      <caption> max-width 放入 cell 中生效</caption>
+      <colgroup>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th style="max-width: 100px;">B1bbbbbbbbbbbbb</th>
+          <th>C1</th>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>所以，用colgroup设置，可能对 dom 的修改比较小，但有 max-width 的问题。 每个cell 都写样式，对dom的操作会多，但不会有样式问题。</p>
+
+
+  </div>
+
+  <div style="width: 400px; overflow: auto;">
+
+    <table class="table1" style="table-layout: fixed; width: 100%;" border="1">
+      <caption>另一种方式就是 width 100% ，会解决这个问题，但双会出现小于时的缩放问题</caption>
+      <colgroup>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+        <col style="width:100px;min-width:100px ;max-width:100px;" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>C</th>
+          <th>C</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1bbbbbbbbbbbbb</th>
+          <th>C1</th>
+          <th>C1</th>
+          <th>C1</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <br />
+  <div style="width: 400px; overflow: auto;">
+    <table class="table1" style="table-layout: fixed; width:100%" border="1">
+      <caption>冻结首列</caption>
+      <colgroup>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th style=" position: sticky; left: 0; ">A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+          <th>F1</th>
+          <th>G1</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A2</th>
+          <th>B2</th>
+          <th>C2</th>
+          <th>D2</th>
+          <th>E2</th>
+          <th>F2</th>
+          <th>G2</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A3</th>
+          <th>B3</th>
+          <th>C3</th>
+          <th>D3</th>
+          <th>E3</th>
+          <th>F3</th>
+          <th>G3</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A4</th>
+          <th>B4</th>
+          <th>C4</th>
+          <th>D4</th>
+          <th>E4</th>
+          <th>F4</th>
+          <th>G4</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A5</th>
+          <th>B5</th>
+          <th>C5</th>
+          <th>D5</th>
+          <th>E5</th>
+          <th>F5</th>
+          <th>G5</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A6</th>
+          <th>B6</th>
+          <th>C6</th>
+          <th>D6</th>
+          <th>E6</th>
+          <th>F6</th>
+          <th>G6</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A7</th>
+          <th>B7</th>
+          <th>C7</th>
+          <th>D7</th>
+          <th>E7</th>
+          <th>F7</th>
+          <th>G7</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A8</th>
+          <th>B8</th>
+          <th>C8</th>
+          <th>D8</th>
+          <th>E8</th>
+          <th>F8</th>
+          <th>G8</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A9</th>
+          <th>B9</th>
+          <th>C9</th>
+          <th>D9</th>
+          <th>E9</th>
+          <th>F9</th>
+          <th>G9</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A10</th>
+          <th>B10</th>
+          <th>C10</th>
+          <th>D10</th>
+          <th>E10</th>
+          <th>F10</th>
+          <th>G10</th>
+        </tr>
+        <tr>
+          <th style=" position: sticky; left: 0;background-color: green;">A11</th>
+          <th>B11</th>
+          <th>C11</th>
+          <th>D11</th>
+          <th>E11</th>
+          <th>F11</th>
+          <th>G11</th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3. 冻结 Footer</h3>
+  <div style="height: 210px; overflow: auto;">
+    <table class="table1" style="table-layout: fixed;" border="1">
+      <caption>冻结footer</caption>
+      <colgroup>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+        <col style="width:100px" </col>
+      </colgroup>
+      <thead style="background-color: red;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+          <th>F1</th>
+          <th>G1</th>
+        </tr>
+        <tr>
+          <th>A2</th>
+          <th>B2</th>
+          <th>C2</th>
+          <th>D2</th>
+          <th>E2</th>
+          <th>F2</th>
+          <th>G2</th>
+        </tr>
+        <tr>
+          <th>A3</th>
+          <th>B3</th>
+          <th>C3</th>
+          <th>D3</th>
+          <th>E3</th>
+          <th>F3</th>
+          <th>G3</th>
+        </tr>
+        <tr>
+          <th>A4</th>
+          <th>B4</th>
+          <th>C4</th>
+          <th>D4</th>
+          <th>E4</th>
+          <th>F4</th>
+          <th>G4</th>
+        </tr>
+        <tr>
+          <th>A5</th>
+          <th>B5</th>
+          <th>C5</th>
+          <th>D5</th>
+          <th>E5</th>
+          <th>F5</th>
+          <th>G5</th>
+        </tr>
+        <tr>
+          <th>A6</th>
+          <th>B6</th>
+          <th>C6</th>
+          <th>D6</th>
+          <th>E6</th>
+          <th>F6</th>
+          <th>G6</th>
+        </tr>
+        <tr>
+          <th>A7</th>
+          <th>B7</th>
+          <th>C7</th>
+          <th>D7</th>
+          <th>E7</th>
+          <th>F7</th>
+          <th>G7</th>
+        </tr>
+        <tr>
+          <th>A8</th>
+          <th>B8</th>
+          <th>C8</th>
+          <th>D8</th>
+          <th>E8</th>
+          <th>F8</th>
+          <th>G8</th>
+        </tr>
+        <tr>
+          <th>A9</th>
+          <th>B9</th>
+          <th>C9</th>
+          <th>D9</th>
+          <th>E9</th>
+          <th>F9</th>
+          <th>G9</th>
+        </tr>
+        <tr>
+          <th>A10</th>
+          <th>B10</th>
+          <th>C10</th>
+          <th>D10</th>
+          <th>E10</th>
+          <th>F10</th>
+          <th>G10</th>
+        </tr>
+        <tr>
+          <th>A11</th>
+          <th>B11</th>
+          <th>C11</th>
+          <th>D11</th>
+          <th>E11</th>
+          <th>F11</th>
+          <th>G11</th>
+        </tr>
+      </tbody>
+      <tfoot style="background-color: green; position: sticky; bottom: 0;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <h3>4. 行列冻结</h3>
+  <div style="height: 210px; width: 410px; overflow: auto;">
+    <table class="table1" style="table-layout: fixed;" border="1">
+      <caption>冻结footer</caption>
+      <colgroup>
+        <col style="width:100px; min-width:100px;" </col>
+        <col style="width:100px; min-width:100px;" </col>
+        <col style="width:100px; min-width:100px;" </col>
+        <col style="width:100px; min-width:100px;" </col>
+        <col style="width:100px; min-width:100px;" </col>
+        <col style="width:100px; min-width:100px;" </col>
+        <col style="width:100px; min-width:100px;" </col>
+      </colgroup>
+      <thead style="background-color: red; position: sticky; top: 0; z-index: 1;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A1</th>
+          <th>B1</th>
+          <th>C1</th>
+          <th>D1</th>
+          <th>E1</th>
+          <th>F1</th>
+          <th>G1</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A2</th>
+          <th>B2</th>
+          <th>C2</th>
+          <th>D2</th>
+          <th>E2</th>
+          <th>F2</th>
+          <th>G2</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A3</th>
+          <th>B3</th>
+          <th>C3</th>
+          <th>D3</th>
+          <th>E3</th>
+          <th>F3</th>
+          <th>G3</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A4</th>
+          <th>B4</th>
+          <th>C4</th>
+          <th>D4</th>
+          <th>E4</th>
+          <th>F4</th>
+          <th>G4</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A5</th>
+          <th>B5</th>
+          <th>C5</th>
+          <th>D5</th>
+          <th>E5</th>
+          <th>F5</th>
+          <th>G5</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A6</th>
+          <th>B6</th>
+          <th>C6</th>
+          <th>D6</th>
+          <th>E6</th>
+          <th>F6</th>
+          <th>G6</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A7</th>
+          <th>B7</th>
+          <th>C7</th>
+          <th>D7</th>
+          <th>E7</th>
+          <th>F7</th>
+          <th>G7</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A8</th>
+          <th>B8</th>
+          <th>C8</th>
+          <th>D8</th>
+          <th>E8</th>
+          <th>F8</th>
+          <th>G8</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A9</th>
+          <th>B9</th>
+          <th>C9</th>
+          <th>D9</th>
+          <th>E9</th>
+          <th>F9</th>
+          <th>G9</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A10</th>
+          <th>B10</th>
+          <th>C10</th>
+          <th>D10</th>
+          <th>E10</th>
+          <th>F10</th>
+          <th>G10</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; position:sticky; left: 0; background: yellow">A11</th>
+          <th>B11</th>
+          <th>C11</th>
+          <th>D11</th>
+          <th>E11</th>
+          <th>F11</th>
+          <th>G11</th>
+        </tr>
+      </tbody>
+      <tfoot style="background-color: green; position: sticky; bottom: 0;">
+        <tr>
+          <th>A</th>
+          <th>B</th>
+          <th>C</th>
+          <th>D</th>
+          <th>E</th>
+          <th>F</th>
+          <th>G</th>
+        </tr>
+      </tfoot>
+    </table>
+
+  </div>
+  <p>header/footer 最好独立出 tbody 外的表格，然后同步去修改水平滚动条。因为列的 sticky，在滚动的时候，可能会盖住 header。</p>
+  <p>或者加一个 z-index:1 来避免。</p>
+
+</body>
+
+</html>
