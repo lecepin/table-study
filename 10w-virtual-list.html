@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>十万数据 虚拟列表</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border: 1px solid #eaeaea;
+    }
+
+    .container {
+      margin: 10px;
+      width: 500px;
+      height: 90vh;
+      overflow: auto;
+      border: 1px solid red;
+    }
+
+    .list {}
+
+    .list-item {
+      border: 1px solid;
+      height: 35px;
+      box-sizing: border-box;
+    }
+  </style>
+  <script crossorigin src="https://g.alicdn.com/code/lib/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://g.alicdn.com/code/lib/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://gw.alipayobjects.com/os/lib/babel/standalone/7.18.8/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script type="text/babel" data-type="module">
+    // mock 数据
+    const _listData = [...new Array(100_000)].map((item, index) => ({
+      id: index + 1,
+      value: index + 1,
+    }));
+
+    function App() {
+      // 每一行的行高
+      const itemHeight = 35;
+      // 上下 buffer 区域的数量
+      const bufferCount = 1;
+
+      // 最外层的容器元素
+      let containerEl = React.useRef();
+      // 最外层的容器 最多可显示出来的条数
+      let visibleCount = 0;
+
+      // 可视区域的切片
+      let startIndex = 0;
+      let endIndex = 0;
+
+      // 缓存可视区域第一条数据的位置信息
+      let anchorItem = {
+        top: 0,
+        bottom: itemHeight,
+      };
+
+      // 缓存上次的滚动条位置，用来判断方向使用
+      let scrollTop = 0;
+
+      // 撑起前面的空白区域。这里必须用 ref，因为赋值后面有一个 setSate 的操作，会导致值清空
+      // * 当然，如果不在视图里面使用，则不用 ref，像 visibleCount 那样 不会有任何问题。 *
+      let startOffset = React.useRef(0);
+
+      const [ds] = React.useState(_listData);
+      const [visibleData, setVisibleData] = React.useState([]);
+
+      console.time("纯JS耗时");
+      React.useLayoutEffect(() => {
+        console.timeEnd("纯JS耗时");
+      });
+
+      // 滚动事件加载
+      React.useEffect(() => {
+        containerEl.current.addEventListener("scroll", handleScroll);
+
+        return () => {
+          containerEl.current.removeEventListener("scroll", handleScroll);
+        };
+      }, []);
+
+      // 列表的完整高度
+      const listContainerHeight = React.useMemo(() => {
+        return ds.length * itemHeight;
+      }, [ds]);
+
+      // 创建 容器的 resize 监听。
+      // 并在第一次，及后面的所有 resize 下，进行可视区域条数的变更和 endIndex 的调整
+      const observer = React.useMemo(
+        () =>
+          new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              const contentRect = entry.contentRect;
+
+              const height = contentRect?.height || 0;
+
+              visibleCount = Math.ceil(height / itemHeight);
+              endIndex = startIndex + visibleCount;
+
+              updateVisibleDataAndLayout();
+            }
+          }),
+        []
+      );
+      // 同上函数配合
+      React.useEffect(() => {
+        if (!containerEl.current) {
+          return;
+        }
+
+        observer.observe(containerEl.current);
+
+        return () => {
+          observer.disconnect();
+        };
+      }, [observer]);
+
+      const updateVisibleDataAndLayout = () => {
+        // buffer 区域
+        const bufferTop = ds.slice(startIndex - bufferCount, startIndex);
+        const bufferBottom = ds.slice(endIndex, endIndex + bufferCount);
+
+        // 合并 buffer 及可视区域的数据
+        const visibleData = [
+          ...bufferTop,
+          ...ds.slice(startIndex, endIndex),
+          ...bufferBottom,
+        ];
+
+        startOffset.current = anchorItem.top - itemHeight * bufferTop.length;
+
+        setVisibleData(visibleData);
+      };
+
+      const handleScroll = (e) => {
+        if (!containerEl.current) {
+          return;
+        }
+
+        // 此处主要配合 anchorItem 的缓存，来减少计算量
+        // 当然 此处判断代码可以完全删除，不影响功能
+        if (
+          // 向下拖动 并 超出边界
+          (containerEl.current.scrollTop > scrollTop &&
+            containerEl.current.scrollTop > anchorItem.bottom) ||
+          // 向上拖动  并 超出边界
+          (containerEl.current.scrollTop < scrollTop &&
+            containerEl.current.scrollTop < anchorItem.top)
+        ) {
+          // 因为 索引*行高==scrollTop，所以可以直接用 scrollTop/行高 来计算索引。
+          // * 此处不使用 索引++ OR --，是因为，当滚动条滚动的速度过快时，会导致索引跳跃，从而导致数据错乱。 *
+          const currentIndexInPosition = ~~(
+            containerEl.current.scrollTop / itemHeight
+          );
+
+          anchorItem = {
+            top: currentIndexInPosition * itemHeight,
+            bottom: currentIndexInPosition * itemHeight + itemHeight,
+          };
+
+          startIndex = currentIndexInPosition;
+          endIndex = startIndex + visibleCount;
+
+          updateVisibleDataAndLayout();
+        }
+
+        scrollTop = containerEl.current.scrollTop;
+      };
+
+      return (
+        <>
+          <div className="container" ref={containerEl}>
+            <div
+              className="list"
+              style={{
+                height: listContainerHeight - startOffset.current,
+                transform: `translateY(${startOffset.current}px)`,
+              }}
+            >
+              {visibleData.map((item) => (
+                <div className="list-item" key={item.id} data-id={item.id}>
+                  ===&gt; {item.value}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>{ds.length.toLocaleString()}条</div>
+        </>
+      );
+    }
+
+
+    ReactDOM.render(<App />, document.getElementById("app"));
+  </script>
+
+</body>
+
+</html>
