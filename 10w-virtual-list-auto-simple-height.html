@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>十万数据 简单动态高度 虚拟列表</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border: 1px solid #eaeaea;
+    }
+
+    .container {
+      margin: 10px;
+      width: 500px;
+      height: 90vh;
+      overflow: auto;
+      border: 1px solid red;
+      position: relative;
+    }
+
+    .container-height {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .list {}
+
+    .list-item {
+      border: 1px solid;
+      height: 35px;
+      box-sizing: border-box;
+    }
+  </style>
+  <script crossorigin src="https://g.alicdn.com/code/lib/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://g.alicdn.com/code/lib/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://gw.alipayobjects.com/os/lib/babel/standalone/7.18.8/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script type="text/babel" data-type="module">
+    // mock 数据
+    const _listData = [...new Array(100_000)].map((item, index) => ({
+      id: index + 1,
+      value: index + 1,
+      __index: index,
+    }));
+
+    function App() {
+      // 每一行的行高
+      const estimatedItemHeight = 35;
+      // 上下 buffer 区域的数量
+      const bufferCount = 1;
+
+      // 最外层的容器元素
+      let containerEl = React.useRef();
+      // list 容器元素，用来获取显示项的实际高度
+      let listEl = React.useRef();
+      // 最外层的容器 最多可显示出来的条数
+      let visibleCount = 0;
+
+      // 可视区域的切片
+      let startIndex = 0;
+      let endIndex = 0;
+
+      // 缓存位置 position
+      const position = React.useRef([]);
+
+      // 撑起前面的空白区域。这里必须用 ref，因为赋值后面有一个 setSate 的操作，会导致值清空
+      // * 当然，如果不在视图里面使用，则不用 ref，像 visibleCount 那样 不会有任何问题。 *
+      let startOffset = React.useRef(0);
+
+      const [ds] = React.useState(_listData);
+      const [visibleData, setVisibleData] = React.useState([]);
+
+      const updateVisibleDataAndLayout = () => {
+        // buffer 区域
+        const bufferTop = ds.slice(startIndex - bufferCount, startIndex);
+        const bufferBottom = ds.slice(endIndex, endIndex + bufferCount);
+
+        // 合并 buffer 及可视区域的数据
+        const visibleData = [
+          ...bufferTop,
+          ...ds.slice(startIndex, endIndex),
+          ...bufferBottom,
+        ];
+
+        startOffset.current = bufferTop.length
+          ? position.current[ds[startIndex].__index].top -
+          position.current[ds[startIndex - 1].__index].height
+          : 0;
+
+        setVisibleData(visibleData);
+      };
+
+      const handleScroll = (e) => {
+        if (!containerEl.current) {
+          return;
+        }
+
+        const binarySearch = (list, value) => {
+          let start = 0;
+          let end = list.length - 1;
+          let tempIndex = null;
+
+          while (start <= end) {
+            let midIndex = parseInt((start + end) / 2);
+            let midValue = list[midIndex].bottom;
+
+            // 刚好等于 current.buttom 时，则是 curent.index 的下一个，即 == (current.index + 1).top
+            if (midValue === value) {
+              return midIndex + 1;
+            }
+            // 不符合，继续找
+            else if (midValue < value) {
+              start = midIndex + 1;
+            }
+            // 打到了，但可能不是第一个
+            else if (midValue > value) {
+              // 所以要 继续往前找 找到第一个
+              if (tempIndex === null || tempIndex > midIndex) {
+                tempIndex = midIndex;
+              }
+              end = end - 1;
+            }
+          }
+
+          return tempIndex;
+        };
+
+        // 通过 scrollTop，找到当前可视区域的第一条数据的位置信息
+        // 条件是 scrollTop < current.bottom && scrollTop >= current.top
+
+        startIndex = binarySearch(position.current, containerEl.current.scrollTop);
+        endIndex = startIndex + visibleCount;
+
+        updateVisibleDataAndLayout();
+      };
+
+      console.time("纯JS耗时");
+      React.useLayoutEffect(() => {
+        console.timeEnd("纯JS耗时");
+      });
+
+      // 初始化 position
+      React.useEffect(() => {
+        position.current = ds.map((item) => ({
+          index: item.__index,
+          top: item.__index * estimatedItemHeight,
+          bottom: item.__index * estimatedItemHeight + estimatedItemHeight,
+          height: estimatedItemHeight,
+        }));
+      }, [ds]);
+
+      // 渲染完项目后，更新项目高度
+      React.useLayoutEffect(() => {
+        if (!listEl.current.children.length) {
+          return;
+        }
+
+        Array.from(listEl.current.children).forEach((item) => {
+          const index = +item.getAttribute("data-index");
+          const height = item.offsetHeight;
+          const oldHeight = position.current[index].height;
+          const diffHeight = height - oldHeight;
+
+          if (diffHeight) {
+            position.current[index].height = height;
+            position.current[index].bottom += diffHeight;
+
+            // 更新后面的数据的位置信息
+            for (let i = index + 1; i < position.current.length; i++) {
+              position.current[i].top += diffHeight;
+              position.current[i].bottom += diffHeight;
+            }
+          }
+        });
+      });
+
+      // 滚动事件加载
+      React.useEffect(() => {
+        containerEl.current.addEventListener("scroll", handleScroll);
+
+        return () => {
+          containerEl.current.removeEventListener("scroll", handleScroll);
+        };
+      }, []);
+
+      // 列表的完整高度
+      const listContainerHeight = React.useMemo(() => {
+        return position.current[position.current.length - 1]?.bottom ?? 0;
+      }, [position.current[position.current.length - 1]?.bottom]);
+
+      // 创建 容器的 resize 监听。
+      // 并在第一次，及后面的所有 resize 下，进行可视区域条数的变更和 endIndex 的调整
+      const observer = React.useMemo(
+        () =>
+          new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              const contentRect = entry.contentRect;
+
+              const height = contentRect?.height || 0;
+
+              visibleCount = Math.ceil(height / estimatedItemHeight);
+              endIndex = startIndex + visibleCount;
+
+              updateVisibleDataAndLayout();
+            }
+          }),
+        []
+      );
+      // 同上函数配合
+      React.useEffect(() => {
+        if (!containerEl.current) {
+          return;
+        }
+
+        observer.observe(containerEl.current);
+
+        return () => {
+          observer.disconnect();
+        };
+      }, [observer]);
+
+      return (
+        <>
+          <div className="container" ref={containerEl}>
+            <div
+              className="container-height"
+              style={{ height: listContainerHeight }}
+            ></div>
+            <div
+              className="list"
+              style={{
+                transform: `translateY(${startOffset.current}px)`,
+              }}
+              ref={listEl}
+            >
+              {visibleData.map((item) => (
+                <div
+                  className="list-item"
+                  key={item.id}
+                  data-id={item.id}
+                  data-index={item.__index}
+                  style={{
+                    height:
+                      item.value % 2 === 0
+                        ? 30 + parseInt(item.value % 10) * 5
+                        : 60,
+                  }}
+                >
+                  ===&gt; {item.value}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>{ds.length.toLocaleString()}条</div>
+        </>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById("app"));
+  </script>
+
+</body>
+
+</html>
