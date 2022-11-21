@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>列头-树型的渲染合并</title>
+  <script crossorigin src="https://g.alicdn.com/code/lib/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://g.alicdn.com/code/lib/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://gw.alipayobjects.com/os/lib/babel/standalone/7.18.8/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script type="text/babel" data-type="module">
+
+    function App({ columns = [] }) {
+      // 存储所有叶子节点，可以获取总列数，及渲染 <col> 使用
+      const flatChildren = [];
+      // 将树型结构转换为平铺的二维数组，可xxx
+      const groupChildren = [];
+
+      // 使用 columns 初始化 flatChildren 和 groupChildren
+      const getChildren = (propsChildren = [], level) => {
+        groupChildren[level] = groupChildren[level] || [];
+        propsChildren.forEach((child) => {
+          if (child?.children?.length) {
+            getChildren(child.children, level + 1);
+          } else {
+            flatChildren.push(child);
+          }
+          groupChildren[level].push(child);
+        });
+      };
+
+      // 计算 每个节点的 colspan
+      const getColSpan = (children, colSpan) => {
+        colSpan = colSpan || 0;
+        children.forEach((child) => {
+          if (child?.children?.length) {
+            colSpan = getColSpan(child.children, colSpan);
+          } else {
+            colSpan += 1;
+          }
+        });
+        return colSpan;
+      };
+
+      getChildren(columns, 0);
+      // 计算每个节点的 colspan，并在原数据中添加 colSpan 属性
+      groupChildren.forEach((groupChild, i) => {
+        groupChild.forEach((child, j) => {
+          if (child?.children?.length) {
+            child.colSpan = getColSpan(child.children);
+            child.rowSpan = 1;
+            groupChildren[i][j] = child;
+          } else {
+            // 计算应该跨多少行
+            child.rowSpan = groupChildren.length - i;
+            child.colSpan = 1;
+            groupChildren[i][j] = child;
+          }
+        });
+      });
+
+      console.log({ flatChildren, groupChildren });
+
+      return (
+        <table border="1">
+          <colgroup>
+            {flatChildren.map((col, index) => (
+              <col
+                style={{ width: col?.width, minWidth: col?.width }}
+                key={index}
+              ></col>
+            ))}
+          </colgroup>
+          <thead>
+            {groupChildren.map((groupChild, index) => (
+              <tr key={index}>
+                {groupChild.map((col, index) => (
+                  <th key={index} colSpan={col?.colSpan} rowSpan={col?.rowSpan}>
+                    {col?.title}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+        </table>
+      );
+    }
+
+    ReactDOM.render(<> <App
+      columns={[
+        {
+          title: "姓名",
+          width: 100,
+          children: [],
+        },
+        {
+          title: "年龄",
+          width: 100,
+          children: [],
+        },
+        {
+          title: "性别",
+          width: 100,
+          children: [],
+        },
+      ]}
+    />
+      <br />
+      <App
+        columns={[
+          {
+            title: "姓名",
+            width: 100,
+            children: [],
+          },
+          {
+            title: "性别",
+            width: 100,
+            children: [
+              {
+                title: "男",
+                width: 100,
+                children: [],
+              },
+              {
+                title: "女",
+                width: 100,
+                children: [],
+              },
+            ],
+          },
+          {
+            title: "地区",
+            width: 100,
+            children: [
+              {
+                title: "国内",
+                width: 100,
+                children: [
+                  {
+                    title: "北京",
+                    width: 100,
+                    children: [],
+                  },
+                  {
+                    title: "非北京 ",
+                    width: 100,
+                    children: [],
+                  },
+                ],
+              },
+              {
+                title: "国外",
+                width: 100,
+                children: [],
+              },
+            ],
+          },
+        ]}
+      /></>, document.getElementById("app"));
+  </script>
+
+</body>
+
+</html>
