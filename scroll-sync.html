@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>双向滚动实现</title>
+    <style>
+        .box {
+            border: 1px solid;
+            width: 300px;
+            height: 150px;
+            overflow: scroll;
+        }
+
+        .item {
+            background-color: red;
+            width: 1000px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box" id="a1">
+        <div class="item">123457890zalkjb;lkjdafd</div>
+    </div>
+    <br />
+    <div class="box" id="a2">
+        <div class="item" style="background-color: green;">123457890zalkjb;lkjdafd</div>
+    </div>
+    <script>
+
+        (() => {
+            const noDealFlagSet = new Set();
+            const els = [a1, a2];
+
+            els.forEach(element => {
+                element.addEventListener('scroll', () => {
+                    // 由下方 js 触发的，则不执行
+                    if (noDealFlagSet.has(element)) {
+                        noDealFlagSet.delete(element);
+                        return;
+                    }
+
+                    console.log('onscroll', element)
+
+                    // 加个保险，可以无
+                    noDealFlagSet.clear();
+                    els.forEach(el => {
+                        if (el !== element) {
+                            noDealFlagSet.add(el);
+                            el.scrollLeft = element.scrollLeft;
+                        }
+                    });
+
+                },
+                    // 提升性能，不会阻止默认事件
+                    { passive: true })
+            });
+        })()
+
+    </script>
+</body>
+
+</html>
