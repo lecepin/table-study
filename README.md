@@ -1,3 +1,5 @@
+> 合成： https://github.com/lecepin/progressive-enhance-table
+
 <h1>table-study</h1>
 
 <ul>
